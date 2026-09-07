@@ -1,0 +1,191 @@
+/* ==========================================
+   تصميم احترافي للطباعة - نظام المخازن
+   ========================================== */
+
+/* إعدادات الصفحة الأساسية */
+@media print {
+    /* إخفاء كل عناصر الواجهة غير الضرورية */
+    .app-sidebar,
+    .app-navbar,
+    .app-overlay,
+    .no-print,
+    .btn,
+    button,
+    .toggle-btn,
+    .dropdown,
+    nav,
+    aside {
+        display: none !important;
+    }
+
+    /* إعادة ضبط المحتوى الرئيسي */
+    .app-main {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    body {
+        background: white !important;
+        font-family: 'Cairo', 'Arial', sans-serif !important;
+        font-size: 12pt !important;
+        color: #000 !important;
+        line-height: 1.6 !important;
+    }
+
+    /* حجم الصفحة A4 */
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+
+    /* رأس الصفحة المطبوعة */
+    .print-header {
+        display: block !important;
+        text-align: center;
+        border-bottom: 3px double #000;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .print-header .logo {
+        font-size: 24pt;
+        font-weight: bold;
+        color: #000;
+        margin-bottom: 5px;
+    }
+
+    .print-header .company-info {
+        font-size: 10pt;
+        color: #333;
+    }
+
+    .print-header .document-title {
+        font-size: 18pt;
+        font-weight: bold;
+        margin: 15px 0;
+        padding: 10px;
+        background: #f0f0f0;
+        border: 2px solid #000;
+    }
+
+    /* تذييل الصفحة */
+    .print-footer {
+        display: block !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 9pt;
+        color: #666;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+        margin-top: 20px;
+    }
+
+    /* تنسيق الجداول */
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 15px 0 !important;
+        font-size: 11pt !important;
+    }
+
+    table th {
+        background: #e0e0e0 !important;
+        color: #000 !important;
+        font-weight: bold !important;
+        border: 2px solid #000 !important;
+        padding: 8px !important;
+        text-align: center !important;
+    }
+
+    table td {
+        border: 1px solid #000 !important;
+        padding: 6px !important;
+        text-align: center !important;
+    }
+
+    table tr:nth-child(even) {
+        background: #f9f9f9 !important;
+    }
+
+    /* تنسيق بطاقات المعلومات */
+    .info-card,
+    .stat-card {
+        border: 1px solid #000 !important;
+        padding: 10px !important;
+        margin: 10px 0 !important;
+        background: white !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+    }
+
+    /* تنسيق العناوين */
+    h1, h2, h3, h4, h5, h6 {
+        color: #000 !important;
+        font-weight: bold !important;
+        margin: 15px 0 10px 0 !important;
+    }
+
+    /* منع كسر الصفحات داخل العناصر المهمة */
+    .no-break {
+        page-break-inside: avoid;
+    }
+
+    /* كسر الصفحة قبل عناصر معينة */
+    .page-break {
+        page-break-before: always;
+    }
+
+    /* تنسيق التوقيعات */
+    .signature-section {
+        display: flex !important;
+        justify-content: space-between;
+        margin-top: 50px;
+        padding-top: 20px;
+    }
+
+    .signature-box {
+        text-align: center;
+        width: 30%;
+    }
+
+    .signature-box .line {
+        border-top: 1px solid #000;
+        margin-top: 60px;
+        padding-top: 5px;
+    }
+
+    /* تنسيق الباركود (إذا موجود) */
+    .barcode {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    /* إخفاء الروابط وإظهار URLs */
+    a[href]:after {
+        content: " (" attr(href) ")";
+        font-size: 9pt;
+        color: #666;
+    }
+
+    a[href^="#"]:after,
+    a[href^="javascript:"]:after {
+        content: "";
+    }
+}
+
+/* ==========================================
+   أنماط خاصة للطباعة فقط (تظهر عند الطباعة)
+   ========================================== */
+.print-only {
+    display: none;
+}
+
+@media print {
+    .print-only {
+        display: block !important;
+    }
+}
