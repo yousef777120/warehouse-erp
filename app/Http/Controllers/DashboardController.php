@@ -14,6 +14,7 @@ use App\Models\StockIssue;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -68,7 +69,7 @@ class DashboardController extends Controller
         $recentIssues = StockIssue::with(['warehouse', 'creator'])
             ->latest()->take(5)->get();
 
-        // بيانات الرسم البياني: المخزون حسب المستودع (طريقة بسيطة ومضمونة)
+        // بيانات الرسم البياني: المخزون حسب المستودع
         $warehousesChart = Warehouse::where('is_active', true)
             ->get()
             ->map(function($warehouse) {
@@ -80,7 +81,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        // بيانات الرسم البياني: الأصناف الأعلى
+        // بيانات الرسم البياني: الأصناف الأعلى مخزوناً
         $topItems = StockBalance::with('item')
             ->orderByDesc('quantity')
             ->take(5)
@@ -90,10 +91,29 @@ class DashboardController extends Controller
                 'quantity' => (float) $b->quantity,
             ]);
 
+        // بيانات الرسم البياني: الحركات خلال آخر 7 أيام
+        $last7Days = collect();
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->format('Y-m-d');
+            $dayName = Carbon::now()->subDays($i)->translatedFormat('D');
+            
+            $receipts = StockReceipt::whereDate('receipt_date', $date)->count();
+            $issues = StockIssue::whereDate('issue_date', $date)->count();
+            $transfers = StockTransfer::whereDate('transfer_date', $date)->count();
+            
+            $last7Days->push([
+                'day' => $dayName,
+                'date' => $date,
+                'receipts' => $receipts,
+                'issues' => $issues,
+                'transfers' => $transfers,
+            ]);
+        }
+
         return view('dashboard', compact(
             'user', 'stats', 'stockStats', 'transferStats',
             'recentTransfers', 'recentReceipts', 'recentIssues',
-            'warehousesChart', 'topItems'
+            'warehousesChart', 'topItems', 'last7Days'
         ));
     }
 }

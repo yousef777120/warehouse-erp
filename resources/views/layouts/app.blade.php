@@ -6,22 +6,26 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'لوحة التحكم') — {{ config('app.name', 'نظام المخازن') }}</title>
 
+    <!-- Bootstrap 5 RTL & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    <!-- ملف تنسيقات الطباعة -->
-<link href="{{ asset('css/print.css') }}" rel="stylesheet" media="print">
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --app-sidebar-w: 270px;
-            --app-navbar-h: 64px;
-            --app-bg-dark: #0f172a;
-            --app-bg-hover: #1e293b;
-            --app-text-muted: #94a3b8;
-            --app-text-light: #f8fafc;
-            --app-accent: #3b82f6;
-            --app-accent-soft: rgba(59, 130, 246, 0.15);
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+            --sidebar-bg: #0f172a;
+            --sidebar-bg-light: #1e293b;
+            --sidebar-text: #94a3b8;
+            --sidebar-text-light: #f8fafc;
+            --sidebar-hover: #334155;
+            --sidebar-active: #3b82f6;
+            --sidebar-active-bg: rgba(59, 130, 246, 0.15);
+            --sidebar-border: rgba(255, 255, 255, 0.05);
+            --navbar-height: 70px;
+            --transition-speed: 0.3s;
         }
 
         * {
@@ -37,130 +41,143 @@
             overflow-x: hidden;
         }
 
-        /* ==========================================
-           القائمة الجانبية الاحترافية
-           ========================================== */
+        /* Sidebar */
         .app-sidebar {
             position: fixed;
             top: 0;
             right: 0;
-            width: var(--app-sidebar-w);
+            width: var(--sidebar-width);
             height: 100vh;
-            background: var(--app-bg-dark);
-            color: var(--app-text-muted);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
             display: flex;
             flex-direction: column;
             z-index: 1040;
-            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
-            overflow-y: auto;
+            transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
-        /* شعار النظام */
-        .app-sidebar__brand {
+        .sidebar-brand {
             padding: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 1rem;
+            border-bottom: 1px solid var(--sidebar-border);
             flex-shrink: 0;
         }
 
-        .app-sidebar__brand-icon {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--app-accent), #2563eb);
-            border-radius: 10px;
+        .sidebar-brand .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            font-size: 1.25rem;
+            color: white;
+            font-size: 1.5rem;
             flex-shrink: 0;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
-        .app-sidebar__brand-title {
-            color: var(--app-text-light);
-            font-size: 1rem;
+        .sidebar-brand .brand-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-brand .brand-text h6 {
+            color: var(--sidebar-text-light);
+            font-size: 1.1rem;
             font-weight: 700;
             margin: 0;
-            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .app-sidebar__brand-subtitle {
-            font-size: 0.7rem;
+        .sidebar-brand .brand-text small {
+            font-size: 0.75rem;
             opacity: 0.7;
-            margin: 0;
+            white-space: nowrap;
         }
 
-        /* محتوى القائمة */
-        .app-sidebar__menu {
-            padding: 1rem 0.75rem;
-            flex-grow: 1;
+        .sidebar-menu {
+            flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1rem 0.75rem;
             scrollbar-width: thin;
-            scrollbar-color: var(--app-bg-hover) transparent;
+            scrollbar-color: var(--sidebar-hover) transparent;
         }
 
-        .app-sidebar__menu::-webkit-scrollbar {
-            width: 5px;
+        .sidebar-menu::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .app-sidebar__menu::-webkit-scrollbar-thumb {
-            background-color: var(--app-bg-hover);
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background-color: var(--sidebar-hover);
             border-radius: 10px;
         }
 
-        /* عناوين الأقسام */
-        .app-sidebar__category {
+        .menu-category {
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #64748b;
             font-weight: 700;
             padding: 1.25rem 0.75rem 0.5rem;
-            margin-top: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
-        /* روابط القائمة */
-        .app-sidebar__link {
+        .menu-link {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.7rem 1rem;
+            gap: 0.875rem;
+            padding: 0.75rem 1rem;
             margin: 0.25rem 0;
-            border-radius: 8px;
-            color: var(--app-text-muted);
+            border-radius: 10px;
+            color: var(--sidebar-text);
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 500;
             transition: all 0.2s ease;
             position: relative;
+            white-space: nowrap;
         }
 
-        .app-sidebar__link-icon {
-            font-size: 1.1rem;
-            width: 22px;
+        .menu-link i {
+            font-size: 1.2rem;
+            width: 24px;
             text-align: center;
-            transition: transform 0.2s ease;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
         }
 
-        .app-sidebar__link:hover {
-            background: var(--app-bg-hover);
-            color: var(--app-text-light);
+        .menu-link span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .app-sidebar__link:hover .app-sidebar__link-icon {
+        .menu-link:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-light);
+            transform: translateX(-4px);
+        }
+
+        .menu-link:hover i {
             transform: scale(1.1);
         }
 
-        .app-sidebar__link--active {
-            background: var(--app-accent-soft);
-            color: var(--app-accent);
+        .menu-link.active {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active);
             font-weight: 600;
         }
 
-        .app-sidebar__link--active::before {
+        .menu-link.active::before {
             content: '';
             position: absolute;
             right: 0;
@@ -168,37 +185,99 @@
             transform: translateY(-50%);
             width: 3px;
             height: 60%;
-            background: var(--app-accent);
+            background: var(--sidebar-active);
             border-radius: 4px 0 0 4px;
         }
 
-        /* تذييل القائمة */
-        .app-sidebar__footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        .menu-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 700;
+            min-width: 20px;
             text-align: center;
+        }
+
+        .sidebar-user {
+            padding: 1rem;
+            border-top: 1px solid var(--sidebar-border);
             flex-shrink: 0;
         }
 
-        /* ==========================================
-           الشريط العلوي
-           ========================================== */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .user-profile:hover {
+            background: var(--sidebar-hover);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-info .name {
+            color: var(--sidebar-text-light);
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-info .role {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+
+        /* Navbar */
         .app-navbar {
             position: fixed;
             top: 0;
-            right: var(--app-sidebar-w);
+            right: var(--sidebar-width);
             left: 0;
-            height: var(--app-navbar-h);
-            background: #fff;
+            height: var(--navbar-height);
+            background: white;
             padding: 0 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             justify-content: space-between;
             z-index: 1030;
+            transition: all var(--transition-speed) ease;
         }
 
-        .app-navbar__toggle {
+        .navbar-brand-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-btn {
             background: transparent;
             border: none;
             font-size: 1.5rem;
@@ -206,66 +285,142 @@
             cursor: pointer;
             padding: 0.5rem;
             border-radius: 8px;
-            transition: background 0.2s;
-        }
-
-        .app-navbar__toggle:hover {
-            background: #f1f5f9;
-        }
-
-        .app-navbar__title {
-            font-size: 1rem;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .app-navbar__subtitle {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin: 0;
-        }
-
-        .app-navbar__user {
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
+            justify-content: center;
+        }
+
+        .toggle-btn:hover {
+            background: #f1f5f9;
+            color: var(--sidebar-active);
+        }
+
+        .page-title-section h6 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
             color: #1e293b;
         }
 
-        .app-navbar__avatar {
-            width: 38px;
-            height: 38px;
+        .page-title-section small {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 1.25rem;
+            color: #475569;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .notification-btn:hover {
+            background: #f1f5f9;
+            color: var(--sidebar-active);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 700;
+            border: 2px solid white;
+        }
+
+        .user-dropdown .avatar {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #0d6efd, #6610f2);
-            color: #fff;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
-        /* ==========================================
-           المحتوى الرئيسي
-           ========================================== */
+        /* Main Content */
         .app-main {
-            margin-right: var(--app-sidebar-w);
-            margin-top: var(--app-navbar-h);
-            min-height: calc(100vh - var(--app-navbar-h));
+            margin-right: var(--sidebar-width);
+            margin-top: var(--navbar-height);
+            min-height: calc(100vh - var(--navbar-height));
             padding: 1.5rem;
+            transition: all var(--transition-speed) ease;
         }
 
-        /* ==========================================
-           التجاوب مع الموبايل
-           ========================================== */
+        /* Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1035;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Collapsed State */
+        .app-sidebar.collapsed {
+            width: var(--sidebar-collapsed-width) !important;
+        }
+
+        .app-sidebar.collapsed .sidebar-brand .brand-text,
+        .app-sidebar.collapsed .user-info,
+        .app-sidebar.collapsed .menu-category,
+        .app-sidebar.collapsed .menu-link span,
+        .app-sidebar.collapsed .menu-badge {
+            display: none !important;
+        }
+
+        .app-sidebar.collapsed .sidebar-brand {
+            justify-content: center !important;
+            padding: 1.5rem 0.5rem !important;
+        }
+
+        .app-sidebar.collapsed .menu-link {
+            justify-content: center !important;
+            padding: 0.75rem !important;
+        }
+
+        .app-sidebar.collapsed .user-profile {
+            justify-content: center !important;
+            padding: 0.75rem !important;
+        }
+
+        /* Responsive */
         @media (max-width: 991.98px) {
             .app-sidebar {
                 transform: translateX(100%);
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
-            .app-sidebar--open {
+            .app-sidebar.show {
                 transform: translateX(0);
             }
 
@@ -277,167 +432,227 @@
                 margin-right: 0;
             }
 
-            .app-overlay {
+            .app-sidebar.collapsed {
+                width: var(--sidebar-width) !important;
+            }
+
+            .app-sidebar.collapsed .sidebar-brand .brand-text,
+            .app-sidebar.collapsed .user-info,
+            .app-sidebar.collapsed .menu-category,
+            .app-sidebar.collapsed .menu-link span,
+            .app-sidebar.collapsed .menu-badge {
+                display: block !important;
+            }
+
+            .app-sidebar.collapsed .sidebar-brand {
+                justify-content: flex-start !important;
+                padding: 1.5rem !important;
+            }
+
+            .app-sidebar.collapsed .menu-link {
+                justify-content: flex-start !important;
+                padding: 0.75rem 1rem !important;
+            }
+
+            .app-sidebar.collapsed .user-profile {
+                justify-content: flex-start !important;
+                padding: 0.75rem !important;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .app-navbar {
+                padding: 0 1rem;
+            }
+
+            .page-title-section small {
                 display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 1035;
-                backdrop-filter: blur(2px);
             }
 
-            .app-overlay--show {
-                display: block;
+            .app-main {
+                padding: 1rem;
+            }
+
+            .user-info {
+                display: none;
             }
         }
 
-        .alert {
-            border-radius: 10px;
-            border: none;
+        @media (max-width: 479.98px) {
+            .navbar-actions .d-none {
+                display: none !important;
+            }
         }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .menu-link {
+            animation: slideIn 0.3s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .menu-link:nth-child(1) { animation-delay: 0.05s; }
+        .menu-link:nth-child(2) { animation-delay: 0.1s; }
+        .menu-link:nth-child(3) { animation-delay: 0.15s; }
+        .menu-link:nth-child(4) { animation-delay: 0.2s; }
+        .menu-link:nth-child(5) { animation-delay: 0.25s; }
+        .menu-link:nth-child(6) { animation-delay: 0.3s; }
     </style>
     @stack('styles')
 </head>
 <body>
 
-<!-- ========================================== -->
-<!-- القائمة الجانبية                           -->
-<!-- ========================================== -->
+<!-- Sidebar -->
 <aside class="app-sidebar" id="appSidebar">
-    <div class="app-sidebar__brand">
-        <div class="app-sidebar__brand-icon">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
             <i class="bi bi-box-seam-fill"></i>
         </div>
-        <div>
-            <h6 class="app-sidebar__brand-title">نظام المخازن</h6>
-            <small class="app-sidebar__brand-subtitle">إدارة متكاملة ERP</small>
+        <div class="brand-text">
+            <h6>نظام المخازن</h6>
+            <small>إدارة متكاملة ERP</small>
         </div>
     </div>
 
-    <div class="app-sidebar__menu">
-        <div class="app-sidebar__category">الرئيسية</div>
-        <a href="{{ route('dashboard') }}" class="app-sidebar__link {{ request()->routeIs('dashboard') ? 'app-sidebar__link--active' : '' }}">
-            <i class="bi bi-speedometer2 app-sidebar__link-icon"></i>
+    <div class="sidebar-menu">
+        <div class="menu-category">الرئيسية</div>
+        <a href="{{ route('dashboard') }}" class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            <i class="bi bi-speedometer2"></i>
             <span>لوحة التحكم</span>
         </a>
 
-        @php $canViewMaster = auth()->user()->canAny(['view_warehouses', 'view_categories', 'view_units', 'view_items']); @endphp
+        @php
+            $canViewMaster = auth()->user()->canAny(['view_warehouses', 'view_categories', 'view_units', 'view_items']);
+        @endphp
         @if($canViewMaster)
-            <div class="app-sidebar__category">البيانات الأساسية</div>
+            <div class="menu-category">البيانات الأساسية</div>
+            
             @can('view_warehouses')
-            <a href="{{ route('admin.warehouses.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.warehouses.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-building app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.warehouses.index') }}" class="menu-link {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">
+                <i class="bi bi-building"></i>
                 <span>المخازن</span>
             </a>
             @endcan
+
             @can('view_categories')
-            <a href="{{ route('admin.categories.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.categories.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-tags-fill app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.categories.index') }}" class="menu-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                <i class="bi bi-tags-fill"></i>
                 <span>التصنيفات</span>
             </a>
             @endcan
+
             @can('view_units')
-            <a href="{{ route('admin.units.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.units.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-rulers app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.units.index') }}" class="menu-link {{ request()->routeIs('admin.units.*') ? 'active' : '' }}">
+                <i class="bi bi-rulers"></i>
                 <span>الوحدات</span>
             </a>
             @endcan
+
             @can('view_items')
-            <a href="{{ route('admin.items.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.items.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-box-seam app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.items.index') }}" class="menu-link {{ request()->routeIs('admin.items.*') ? 'active' : '' }}">
+                <i class="bi bi-box-seam"></i>
                 <span>الأصناف</span>
             </a>
             @endcan
         @endif
 
-        @php $canViewOps = auth()->user()->canAny(['view_receipts', 'view_issues', 'view_transfers']); @endphp
+        @php
+            $canViewOps = auth()->user()->canAny(['view_receipts', 'view_issues', 'view_transfers']);
+        @endphp
         @if($canViewOps)
-            <div class="app-sidebar__category">العمليات</div>
+            <div class="menu-category">العمليات</div>
+
             @can('view_receipts')
-            <a href="{{ route('admin.receipts.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.receipts.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-box-arrow-in-down app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.receipts.index') }}" class="menu-link {{ request()->routeIs('admin.receipts.*') ? 'active' : '' }}">
+                <i class="bi bi-box-arrow-in-down"></i>
                 <span>سندات الإدخال</span>
             </a>
             @endcan
+
             @can('view_issues')
-            <a href="{{ route('admin.issues.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.issues.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-box-arrow-up app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.issues.index') }}" class="menu-link {{ request()->routeIs('admin.issues.*') ? 'active' : '' }}">
+                <i class="bi bi-box-arrow-up"></i>
                 <span>سندات الإخراج</span>
             </a>
             @endcan
+
             @can('view_transfers')
-            <a href="{{ route('admin.transfers.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.transfers.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-arrow-left-right app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.transfers.index') }}" class="menu-link {{ request()->routeIs('admin.transfers.*') ? 'active' : '' }}">
+                <i class="bi bi-arrow-left-right"></i>
                 <span>التحويلات بين المخازن</span>
             </a>
             @endcan
         @endif
 
         @can('view_reports')
-            <div class="app-sidebar__category">التقارير</div>
-            <a href="{{ route('admin.reports.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.reports.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-bar-chart-line-fill app-sidebar__link-icon"></i>
+            <div class="menu-category">التقارير</div>
+            <a href="{{ route('admin.reports.index') }}" class="menu-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                <i class="bi bi-bar-chart-line-fill"></i>
                 <span>التقارير والتحليلات</span>
             </a>
         @endcan
 
-        @php $canViewAdmin = auth()->user()->canAny(['view_users', 'view_roles']); @endphp
+        @php
+            $canViewAdmin = auth()->user()->canAny(['view_users', 'view_roles']);
+        @endphp
         @if($canViewAdmin)
-            <div class="app-sidebar__category">الإدارة</div>
+            <div class="menu-category">الإدارة</div>
+
             @can('view_users')
-            <a href="{{ route('admin.users.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.users.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-people-fill app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.users.index') }}" class="menu-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                <i class="bi bi-people-fill"></i>
                 <span>المستخدمون</span>
             </a>
             @endcan
+
             @can('view_roles')
-            <a href="{{ route('admin.roles.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.roles.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-shield-lock-fill app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.roles.index') }}" class="menu-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                <i class="bi bi-shield-lock-fill"></i>
                 <span>الأدوار والصلاحيات</span>
             </a>
             @endcan
+
             @can('view_roles')
-            <a href="{{ route('admin.audit_logs.index') }}" class="app-sidebar__link {{ request()->routeIs('admin.audit_logs.*') ? 'app-sidebar__link--active' : '' }}">
-                <i class="bi bi-clock-history app-sidebar__link-icon"></i>
+            <a href="{{ route('admin.audit_logs.index') }}" class="menu-link {{ request()->routeIs('admin.audit_logs.*') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i>
                 <span>سجل العمليات</span>
             </a>
             @endcan
         @endif
     </div>
 
-    <div class="app-sidebar__footer">
-        <small class="text-muted">v1.0.0 &copy; {{ date('Y') }}</small>
-    </div>
-</aside>
-
-<!-- ========================================== -->
-<!-- الشريط العلوي                              -->
-<!-- ========================================== -->
-<nav class="app-navbar">
-    <div class="d-flex align-items-center gap-3">
-        <button class="app-navbar__toggle" id="appToggleBtn">
-            <i class="bi bi-list"></i>
-        </button>
-        <div>
-            <h6 class="app-navbar__title">@yield('page-title', 'لوحة التحكم')</h6>
-            <small class="app-navbar__subtitle">@yield('page-subtitle', 'مرحباً بك في النظام')</small>
-        </div>
-    </div>
-
-    <div class="dropdown">
-        <a href="#" class="app-navbar__user" data-bs-toggle="dropdown">
-            <div class="app-navbar__avatar">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
-            <div class="d-none d-md-block">
-                <div class="fw-bold small">{{ auth()->user()->name }}</div>
-                <div class="text-muted" style="font-size: 0.75rem;">
-                    {{ auth()->user()->roles->first()->name ?? 'مستخدم' }}
-                </div>
+    <div class="sidebar-user">
+        <div class="user-profile" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+                {{ mb_substr(auth()->user()->name, 0, 1) }}
             </div>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-start shadow-sm">
+            <div class="user-info">
+                <div class="name">{{ auth()->user()->name }}</div>
+                <div class="role">{{ auth()->user()->roles->first()->name ?? 'مستخدم' }}</div>
+            </div>
+            <i class="bi bi-chevron-down" style="color: var(--sidebar-text);"></i>
+        </div>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2">
+            <li>
+                <a class="dropdown-item" href="#">
+                    <i class="bi bi-person me-2"></i>الملف الشخصي
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="#">
+                    <i class="bi bi-gear me-2"></i>الإعدادات
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
             <li>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -448,11 +663,55 @@
             </li>
         </ul>
     </div>
+</aside>
+
+<!-- Navbar -->
+<nav class="app-navbar">
+    <div class="navbar-brand-section">
+        <button class="toggle-btn" id="toggleSidebar">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="page-title-section">
+            <h6>@yield('page-title', 'لوحة التحكم')</h6>
+            <small>@yield('page-subtitle', 'مرحباً بك في النظام')</small>
+        </div>
+    </div>
+
+    <div class="navbar-actions">
+        <button class="notification-btn" data-bs-toggle="dropdown">
+            <i class="bi bi-bell-fill"></i>
+            <span class="notification-badge">3</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li><h6 class="dropdown-header">الإشعارات</h6></li>
+            <li><a class="dropdown-item" href="#">لا توجد إشعارات جديدة</a></li>
+        </ul>
+
+        <div class="user-dropdown dropdown d-none d-md-block">
+            <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark" data-bs-toggle="dropdown">
+                <div class="avatar">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
+                <div class="d-none d-lg-block">
+                    <div class="fw-bold small">{{ auth()->user()->name }}</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                        {{ auth()->user()->roles->first()->name ?? 'مستخدم' }}
+                    </div>
+                </div>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="dropdown-item text-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i>تسجيل الخروج
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
 </nav>
 
-<!-- ========================================== -->
-<!-- المحتوى الرئيسي                           -->
-<!-- ========================================== -->
+<!-- Main Content -->
 <div class="app-main">
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show">
@@ -477,33 +736,52 @@
     @yield('content')
 </div>
 
-<!-- طبقة التعتيم للموبايل -->
-<div class="app-overlay" id="appOverlay"></div>
+<!-- Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')
 
+<!-- Sidebar Toggle Script -->
 <script>
     const sidebar = document.getElementById('appSidebar');
-    const overlay = document.getElementById('appOverlay');
-    const toggleBtn = document.getElementById('appToggleBtn');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggleBtn = document.getElementById('toggleSidebar');
 
     toggleBtn.addEventListener('click', function() {
         if (window.innerWidth < 992) {
-            sidebar.classList.toggle('app-sidebar--open');
-            overlay.classList.toggle('app-overlay--show');
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+            document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+        } else {
+            sidebar.classList.toggle('collapsed');
         }
     });
 
     overlay.addEventListener('click', function() {
-        sidebar.classList.remove('app-sidebar--open');
-        overlay.classList.remove('app-overlay--show');
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
     });
-    @media print {
-    .sidebar, .no-print { display: none !important; }
-    .main-content { margin-right: 0 !important; }
-    .card { border: 1px solid #ddd !important; box-shadow: none !important; }
-}
+
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 992) {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    });
+
+    document.querySelectorAll('.menu-link').forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth < 992) {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
+    });
 </script>
 </body>
 </html>

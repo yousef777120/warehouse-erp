@@ -76,7 +76,7 @@ class DashboardTest extends TestCase
         $response->assertSee('وصل للحد الأدنى'); // جملة كاملة لتجنب أي مشاكل في مطابقة الأحرف
     }
 
-    public function test_dashboard_shows_chart_and_recent_transactions(): void
+        public function test_dashboard_shows_chart_and_recent_transactions(): void
     {
         // إنشاء وحدة وصنف
         $unit = Unit::firstOrCreate(['name' => 'قطعة', 'code' => 'PCS']);
@@ -95,7 +95,7 @@ class DashboardTest extends TestCase
             'is_active' => true
         ]);
 
-        // ✅ الحل الجذري: إنشاء رصيد مخزوني لكي يظهر الصنف في الرسم البياني
+        // إنشاء رصيد مخزوني لكي يظهر الصنف في الرسم البياني
         StockBalance::create([
             'item_id' => $item->id,
             'warehouse_id' => $warehouse->id,
@@ -106,8 +106,9 @@ class DashboardTest extends TestCase
 
         $response->assertStatus(200);
         
-        // التحقق من وجود معرف الرسم البياني واسم الصنف
-        $response->assertSee('warehousesChart');
+        // ✅ التعديل هنا: البحث عن topItemsChart بدلاً من warehousesChart
+        // لأن التصميم الجديد يعرض الأصناف الأعلى مخزوناً والحركات خلال 7 أيام
+        $response->assertSee('topItemsChart');
         $response->assertSee('صنف تجريبي');
     }
 }
