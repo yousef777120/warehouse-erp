@@ -27,6 +27,7 @@ class RolePermissionSeeder extends Seeder
             'view_issues', 'manage_issues',
             'view_transfers', 'manage_transfers',
             'view_reports', 'export_reports',
+            'view_accounting', 'manage_accounting',
             'view_audit_logs',
         ];
 
@@ -50,7 +51,7 @@ class RolePermissionSeeder extends Seeder
             'view_issues', 'manage_issues',
             'view_transfers', 'manage_transfers',
             'view_reports', 'export_reports',
-            'view_audit_logs',
+            'view_audit_logs', 'view_accounting',
         ]);
 
         // ✅ أمين المخزن: عمليات فقط (بدون إدارة)

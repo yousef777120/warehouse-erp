@@ -18,39 +18,30 @@ class AuditLogController extends Controller implements HasMiddleware
         ];
     }
 
-    /**
-     * عرض سجل العمليات مع فلاتر متقدمة
-     */
     public function index(Request $request)
     {
-        $query = AuditLog::with(['user', 'auditable'])->latest();
+        $query = AuditLog::with(['user'])->latest();
 
-        // فلتر حسب المستخدم
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
         }
 
-        // فلتر حسب نوع العملية
         if ($request->filled('action')) {
             $query->where('action', $request->action);
         }
 
-        // فلتر حسب نوع النموذج
         if ($request->filled('model_type')) {
             $query->where('auditable_type', 'like', '%' . $request->model_type . '%');
         }
 
-        // فلتر حسب التاريخ من
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
 
-        // فلتر حسب التاريخ إلى
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        // بحث عام
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -69,33 +60,25 @@ class AuditLogController extends Controller implements HasMiddleware
             'created' => 'إنشاء',
             'updated' => 'تحديث',
             'deleted' => 'حذف',
-            'login' => 'تسجيل دخول',
-            'logout' => 'تسجيل خروج',
-            'failed_login' => 'محاولة دخول فاشلة',
         ];
 
         $modelTypes = [
-            'App\Models\User' => 'مستخدم',
-            'App\Models\Role' => 'دور',
-            'App\Models\Warehouse' => 'مخزن',
-            'App\Models\Category' => 'تصنيف',
-            'App\Models\Unit' => 'وحدة قياس',
-            'App\Models\Item' => 'صنف',
-            'App\Models\StockReceipt' => 'سند إدخال',
-            'App\Models\StockIssue' => 'سند صرف',
-            'App\Models\StockTransfer' => 'تحويل',
+            'App\\Models\\User'          => 'مستخدم',
+            'App\\Models\\Warehouse'     => 'مخزن',
+            'App\\Models\\Category'      => 'تصنيف',
+            'App\\Models\\Unit'          => 'وحدة قياس',
+            'App\\Models\\Item'          => 'صنف',
+            'App\\Models\\StockReceipt'  => 'سند إدخال',
+            'App\\Models\\StockIssue'    => 'سند صرف',
+            'App\\Models\\StockTransfer' => 'تحويل',
         ];
 
         return view('admin.audit-logs.index', compact('logs', 'users', 'actions', 'modelTypes'));
     }
 
-    /**
-     * عرض تفاصيل عملية واحدة
-     */
     public function show(AuditLog $log)
     {
-        $log->load(['user', 'auditable']);
-
+        $log->load(['user']);
         return view('admin.audit-logs.show', compact('log'));
     }
 }

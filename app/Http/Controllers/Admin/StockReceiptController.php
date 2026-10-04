@@ -14,6 +14,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AccountingService;
 
 class StockReceiptController extends Controller implements HasMiddleware
 {
@@ -179,15 +180,60 @@ class StockReceiptController extends Controller implements HasMiddleware
             ->with('success', 'تم حذف السند');
     }
 
-    public function confirm(StockReceipt $receipt)
-    {
-        try {
-            $this->movementService->confirmReceipt($receipt);
-            return back()->with('success', 'تم تأكيد السند وتحديث الأرصدة');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
+   /**
+ * تأكيد السند → إضافة الكميات للأرصدة + توليد قيد شراء تلقائي
+ */
+public function confirm(StockReceipt $receipt){
+    if ($receipt->status !== 'draft') {
+        return back()->with('error', 'لا يمكن تأكيد سند ليس بحالة مسودة');
     }
+
+    if ($receipt->items()->count() === 0) {
+        return back()->with('error', 'لا يمكن تأكيد سند فارغ');
+    }
+
+    DB::transaction(function () use ($receipt) {
+        // 1) تحديث أرصدة المخزون
+        foreach ($receipt->items as $it) {
+            $balance = StockBalance::firstOrCreate(
+                ['item_id' => $it->item_id, 'warehouse_id' => $receipt->warehouse_id],
+                ['quantity' => 0]
+            );
+
+            $balance = StockBalance::where('id', $balance->id)->lockForUpdate()->first();
+            $balance->update(['quantity' => (float) $balance->quantity + (float) $it->quantity]);
+
+            StockTransaction::create([
+                'transaction_type' => 'receipt',
+                'reference_type'   => StockReceipt::class,
+                'reference_id'     => $receipt->id,
+                'warehouse_id'     => $receipt->warehouse_id,
+                'item_id'          => $it->item_id,
+                'quantity'         => $it->quantity,
+                'movement'         => 'in',
+                'user_id'          => auth()->id(),
+                'notes'            => "تأكيد سند إدخال {$receipt->serial}",
+            ]);
+        }
+
+        // 2) تحديث حالة السند
+        $receipt->update([
+            'status'       => 'confirmed',
+            'confirmed_by' => auth()->id(),
+            'confirmed_at' => now(),
+        ]);
+    });
+
+    // 3) 🤖 الوكيل المحاسبي: توليد قيد شراء تلقائي (خارج الـ transaction)
+    //    إذا فشل لا نلغي السند، فقط نسجل تحذيراً
+    try {
+        $this->accountingService->createPurchaseEntryFromReceipt($receipt);
+    } catch (\Throwable $e) {
+        \Log::warning('فشل توليد القيد المحاسبي لسند الإدخال #' . $receipt->id . ': ' . $e->getMessage());
+    }
+
+    return back()->with('success', 'تم تأكيد السند وتحديث الأرصدة، وتوليد القيد المحاسبي تلقائياً');
+}
 
        /**
      * إلغاء السند المؤكد → عكس الأرصدة

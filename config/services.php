@@ -34,5 +34,17 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+      // إعدادات الذكاء الاصطناعي
+    'ai' => [
+    'base'  => env('AI_BASE_URL', 'https://api.groq.com/openai/v1'),
+    'key'   => env('AI_API_KEY'),
+    'model' => env('AI_MODEL', 'llama-4-scout-17b-16e-instruct'),
+],
+       // الربط مع Akaunting
+    'akaunting' => [
+        'url'      => env('AKAUNTING_URL'),
+        'email'    => env('AKAUNTING_EMAIL'),
+        'password' => env('AKAUNTING_PASSWORD'),
+        'company'  => env('AKAUNTING_COMPANY', 1),
+    ],
 ];

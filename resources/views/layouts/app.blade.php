@@ -189,6 +189,27 @@
             border-radius: 4px 0 0 4px;
         }
 
+               /* شارة AI المدمجة — حجم ثابت لا يضغط النص */
+                   .badge-ai {
+            flex: 0 0 auto;
+            font-size: 0.58rem;
+            padding: 0.12rem 0.4rem;
+            border-radius: 8px;
+            letter-spacing: 0.5px;
+            color: #fff;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+            animation: pulse-ai 2s ease-in-out infinite;
+            line-height: 1.2;
+            margin-right: 0;          /* ✅ ثبات على اليسار في RTL */
+            margin-inline-start: auto; /* ✅ يدفعها لليسار */
+        }
+
+        @keyframes pulse-ai {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.92); }
+        }
+
         .menu-badge {
             background: #ef4444;
             color: white;
@@ -395,7 +416,8 @@
         .app-sidebar.collapsed .user-info,
         .app-sidebar.collapsed .menu-category,
         .app-sidebar.collapsed .menu-link span,
-        .app-sidebar.collapsed .menu-badge {
+        .app-sidebar.collapsed .menu-badge,
+        .app-sidebar.collapsed .badge-ai {
             display: none !important;
         }
 
@@ -440,7 +462,8 @@
             .app-sidebar.collapsed .user-info,
             .app-sidebar.collapsed .menu-category,
             .app-sidebar.collapsed .menu-link span,
-            .app-sidebar.collapsed .menu-badge {
+            .app-sidebar.collapsed .menu-badge,
+            .app-sidebar.collapsed .badge-ai {
                 display: block !important;
             }
 
@@ -506,6 +529,12 @@
         .menu-link:nth-child(4) { animation-delay: 0.2s; }
         .menu-link:nth-child(5) { animation-delay: 0.25s; }
         .menu-link:nth-child(6) { animation-delay: 0.3s; }
+
+        /* الطباعة */
+        @media print {
+            .app-sidebar, .app-navbar, .sidebar-overlay { display: none !important; }
+            .app-main { margin: 0 !important; padding: 0 !important; }
+        }
     </style>
     @stack('styles')
 </head>
@@ -535,7 +564,7 @@
         @endphp
         @if($canViewMaster)
             <div class="menu-category">البيانات الأساسية</div>
-            
+
             @can('view_warehouses')
             <a href="{{ route('admin.warehouses.index') }}" class="menu-link {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">
                 <i class="bi bi-building"></i>
@@ -592,6 +621,19 @@
             </a>
             @endcan
         @endif
+        
+        {{-- ===== قسم المحاسبة ===== --}}
+        <div class="menu-category">المحاسبة</div>
+
+        @if(Route::has('admin.agent.index'))
+        <a href="{{ route('admin.agent.index') }}"
+           class="menu-link {{ request()->routeIs('admin.agent.*') ? 'active' : '' }}"
+           title="الوكيل المحاسبي الذكي">
+            <i class="bi bi-robot"></i>
+            <span>الوكيل المحاسبي</span>
+            <span class="badge-ai">المحاسبي AI </span>
+        </a>
+        @endif
 
         @can('view_reports')
             <div class="menu-category">التقارير</div>
@@ -643,15 +685,17 @@
         </div>
         <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2">
             <li>
-                <a class="dropdown-item" href="#">
-                    <i class="bi bi-person me-2"></i>الملف الشخصي
+             <a class="dropdown-item" href="{{ route('profile.edit') }}">
+             <i class="bi bi-person me-2"></i>الملف الشخصي
                 </a>
-            </li>
-            <li>
-                <a class="dropdown-item" href="#">
-                    <i class="bi bi-gear me-2"></i>الإعدادات
-                </a>
-            </li>
+             </li>
+             <li>
+             <a class="dropdown-item" href="{{ route('settings.edit') }}">
+                <i class="bi bi-gear me-2"></i>الإعدادات
+              </a>
+             </li>
+          
+           
             <li><hr class="dropdown-divider"></li>
             <li>
                 <form method="POST" action="{{ route('logout') }}">
@@ -678,15 +722,32 @@
     </div>
 
     <div class="navbar-actions">
-        <button class="notification-btn" data-bs-toggle="dropdown">
+        <!-- زر الإشعارات -->
+        <button class="notification-btn position-relative" id="notificationBtn" data-bs-toggle="dropdown">
             <i class="bi bi-bell-fill"></i>
-            <span class="notification-badge">3</span>
+            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-            <li><h6 class="dropdown-header">الإشعارات</h6></li>
-            <li><a class="dropdown-item" href="#">لا توجد إشعارات جديدة</a></li>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 350px; max-width: 350px;">
+            <li class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                <h6 class="mb-0 fw-bold">الإشعارات</h6>
+                <button class="btn btn-sm btn-link text-decoration-none" id="markAllRead" style="font-size: 0.8rem;">
+                    تحديد الكل كمقروء
+                </button>
+            </li>
+            <li id="notificationsList">
+                <div class="text-center text-muted py-4" id="loadingNotifications">
+                    <i class="bi bi-hourglass-split"></i> جاري التحميل...
+                </div>
+            </li>
+            <li class="p-3 border-top">
+                <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-primary w-100">
+                    عرض جميع الإشعارات
+                </a>
+            </li>
         </ul>
 
+        <!-- User Dropdown -->
         <div class="user-dropdown dropdown d-none d-md-block">
             <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark" data-bs-toggle="dropdown">
                 <div class="avatar">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
@@ -701,6 +762,8 @@
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
+                         <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>الملف الشخصي</a></li>
+            <li><a class="dropdown-item" href="{{ route('settings.edit') }}"><i class="bi bi-gear me-2"></i>الإعدادات</a></li>
                         <button type="submit" class="dropdown-item text-danger">
                             <i class="bi bi-box-arrow-right me-2"></i>تسجيل الخروج
                         </button>
@@ -782,6 +845,158 @@
             }
         });
     });
+</script>
+
+<script>
+// تحديث الإشعارات
+function fetchNotifications() {
+    fetch('{{ route("notifications.unread") }}', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateNotificationsUI(data.notifications, data.count);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function updateNotificationsUI(notifications, count) {
+    const badge = document.getElementById('notificationBadge');
+    const list = document.getElementById('notificationsList');
+
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+
+    if (notifications.length === 0) {
+        list.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-bell-slash" style="font-size: 2rem;"></i>
+                <p class="mt-2 mb-0">لا توجد إشعارات جديدة</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    notifications.forEach(notification => {
+        const typeColors = {
+            'info': 'bg-primary',
+            'success': 'bg-success',
+            'warning': 'bg-warning',
+            'danger': 'bg-danger'
+        };
+
+        html += `
+            <a href="#" class="dropdown-item d-flex align-items-start p-3 notification-item ${notification.is_read ? '' : 'bg-light'}"
+               data-id="${notification.id}" data-link="${notification.link}">
+                <div class="icon-wrapper ${typeColors[notification.type]} text-white rounded-circle p-2 me-2"
+                     style="min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi ${notification.icon}"></i>
+                </div>
+                <div class="flex-grow-1 ms-2" style="min-width: 0;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6 class="mb-1 small fw-bold text-truncate" style="max-width: 200px;">${notification.title}</h6>
+                        <small class="text-muted" style="font-size: 0.7rem;">${timeAgo(notification.created_at)}</small>
+                    </div>
+                    <p class="mb-1 small text-truncate">${notification.message}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted" style="font-size: 0.7rem;">
+                            ${new Date(notification.created_at).toLocaleString('ar-SA')}
+                        </small>
+                        <button class="btn btn-sm btn-link p-0 mark-read" data-id="${notification.id}" style="font-size: 0.7rem;">
+                            تحديد كمقروء
+                        </button>
+                    </div>
+                </div>
+            </a>
+        `;
+    });
+
+    list.innerHTML = html;
+
+    document.querySelectorAll('.mark-read').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            markAsRead(this.dataset.id);
+        });
+    });
+
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const link = this.dataset.link;
+            markAsRead(id);
+            if (link && link !== '#') {
+                window.location.href = link;
+            }
+        });
+    });
+}
+
+function markAsRead(id) {
+    fetch(`/notifications/${id}/read`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fetchNotifications();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+document.getElementById('markAllRead')?.addEventListener('click', function() {
+    fetch('{{ route("notifications.read-all") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fetchNotifications();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+function timeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return 'الآن';
+    if (seconds < 3600) return `منذ ${Math.floor(seconds / 60)} دقيقة`;
+    if (seconds < 86400) return `منذ ${Math.floor(seconds / 3600)} ساعة`;
+    if (seconds < 604800) return `منذ ${Math.floor(seconds / 86400)} يوم`;
+
+    return date.toLocaleDateString('ar-SA');
+}
+
+setInterval(fetchNotifications, 30000);
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchNotifications();
+});
 </script>
 </body>
 </html>

@@ -28,6 +28,10 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 }
+    protected $casts = [
+    // ... الموجود ...
+    'preferences' => 'array',   // ← أضف هذا السطر
+];
 
     public function getRoleDisplayNameAttribute(): string
     {

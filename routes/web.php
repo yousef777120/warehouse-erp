@@ -13,7 +13,10 @@ use App\Http\Controllers\Admin\StockTransferController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\AuditLogController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Admin\AgentController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -40,6 +43,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware(['permission:manage_users'])->group(function () {
             Route::resource('users', UserController::class);
         });
+        
+     Route::middleware('auth')->group(function () {
+
+    // الملف الشخصي
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    // تحديث البيانات الشخصية
+    Route::put('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    // تغيير كلمة المرور
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->name('profile.password');
+
+    // حذف الحساب
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
+});
+        // الإعدادات
+Route::middleware('auth')->group(function () {
+
+    Route::get('/settings', [SettingsController::class, 'edit'])
+        ->name('settings.edit');
+
+    Route::put('/settings', [SettingsController::class, 'update'])
+        ->name('settings.update');
+
+});
 
         Route::middleware(['permission:manage_roles'])->group(function () {
             Route::resource('roles', RoleController::class);
@@ -78,6 +111,50 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
             Route::post('transfers/{transfer}/cancel', [StockTransferController::class, 'cancel'])->name('transfers.cancel');
         });
+       
+// 5. الوكيل الذكي والمحاسبة
+Route::prefix('agent')
+    ->name('agent.')
+    ->middleware('permission:view_accounting')
+    ->group(function () {
+
+        // الصفحة الرئيسية للوكيل
+        Route::get('/', [AgentController::class, 'index'])
+            ->name('index');
+
+        // عرض القيد المحاسبي
+        Route::get('/entries/{entry}', [AgentController::class, 'showEntry'])
+            ->name('show');
+
+        // طباعة القيد بحجم A4
+        Route::get('/entries/{entry}/print', [AgentController::class, 'printEntry'])
+            ->name('print');
+
+        // العمليات التي تحتاج صلاحية إدارة المحاسبة
+        Route::middleware('permission:manage_accounting')->group(function () {
+
+            // تحليل الفاتورة بالذكاء الاصطناعي
+            Route::post('/analyze', [AgentController::class, 'analyze'])
+                ->name('analyze');
+
+            // اعتماد الفاتورة وترحيل القيد
+            Route::post('/invoices/{invoice}/approve', [AgentController::class, 'approve'])
+                ->name('approve');
+
+            // رفض الفاتورة
+            Route::post('/invoices/{invoice}/reject', [AgentController::class, 'reject'])
+                ->name('reject');
+
+            // تشغيل وترحيل الرواتب
+            Route::post('/payroll', [AgentController::class, 'payroll'])
+                ->name('payroll');
+
+            // إضافة موظف
+            Route::post('/employees', [AgentController::class, 'storeEmployee'])
+                ->name('employees.store');
+        });
+    });
+
 
         // 6. التقارير
         Route::middleware(['permission:view_reports'])->prefix('reports')->name('reports.')->group(function () {
@@ -103,8 +180,39 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('receipts/{receipt}/print', [StockReceiptController::class, 'print'])->name('receipts.print');
 Route::get('issues/{issue}/print', [StockIssueController::class, 'print'])->name('issues.print');
 Route::get('transfers/{transfer}/print', [StockTransferController::class, 'print'])->name('transfers.print');
+     
 
     }); // إغلاق مجموعة admin
+    Route::middleware('auth')->group(function () {
+
+    // الملف الشخصي
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    // تحديث البيانات الشخصية
+    Route::put('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    // تغيير كلمة المرور
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->name('profile.password');
+
+    // حذف الحساب
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
+});
+        // الإعدادات
+Route::middleware('auth')->group(function () {
+
+    Route::get('/settings', [SettingsController::class, 'edit'])
+        ->name('settings.edit');
+
+    Route::put('/settings', [SettingsController::class, 'update'])
+        ->name('settings.update');
+
+});
+
         // ... (كل مساراتك السابقة تكون هنا) ...
 
     // ==========================================
@@ -125,8 +233,21 @@ Route::get('transfers/{transfer}/print', [StockTransferController::class, 'print
             'total_permissions' => $user->getAllPermissions()->pluck('name'),
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     });
-
+    
+    // مسارات الإشعارات
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread', [NotificationController::class, 'getUnreadNotifications'])->name('notifications.unread');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    
+    // للاختبار فقط
+    Route::post('/notifications/test', [NotificationController::class, 'createTestNotification'])->name('notifications.test');
+});
+ 
 }); // إغلاق مجموعة auth, verified
+
 
 require __DIR__.'/auth.php';
 
